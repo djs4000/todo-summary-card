@@ -5,7 +5,7 @@ This custom Lovelace card displays all tasks that are due today or overdue acros
 ## Installation via HACS
 
 1. Go to **HACS → Frontend → Custom Repositories**
-2. Add this repo: `https://github.com/your-github-username/todo-summary-card`
+2. Add this repo: 'https://github.com/djs4000/todo-summary-card'
 3. Select category: **Lovelace**
 4. Install `Todo Summary Card`
 
