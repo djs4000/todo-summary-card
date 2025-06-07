@@ -1,0 +1,15 @@
+{
+  "name": "Todo Summary Card",
+  "author": "your-github-username",
+  "description": "A Lovelace card that shows overdue or due-today tasks from multiple todo lists.",
+  "version": "1.0.0",
+  "type": "module",
+  "keywords": ["lovelace", "todo", "card"],
+  "repository": "https://github.com/your-github-username/todo-summary-card",
+  "resources": [
+    {
+      "file": "dist/todo-summary-card.js",
+      "type": "module"
+    }
+  ]
+}
