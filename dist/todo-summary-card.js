@@ -7,39 +7,16 @@ class TodoSummaryCard extends HTMLElement {
   }
 
   set hass(hass) {
-    if (!this._hasRendered) {
-      this._hasRendered = true;
-      this.refreshTasks(hass);
-    }
-  }
+    const config = this._config;
+    const lists = config.entities || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  async refreshTasks(hass) {
-  const lists = this._config.entities || [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const tasks = [];
 
-  const tasks = [];
-
-  for (const entityId of lists) {
-    try {
-      console.log("Requesting items via WebSocket for:", entityId);
-      await hass.connection.sendMessagePromise({
-        type: "todo/get_items",
-        entity_id: entityId,
-        return_response: true
-      });
-    } catch (e) {
-      console.warn("WebSocket call failed for", entityId, e);
-    }
-  }
-
-  // Delay to let HA update states
-  setTimeout(() => {
     lists.forEach(entityId => {
       const entity = hass.states[entityId];
-      console.log("Checking entity state:", entityId, entity);
-
-      if (!entity || !entity.attributes || !Array.isArray(entity.attributes.items)) return;
+      if (!entity?.attributes?.items) return;
 
       entity.attributes.items.forEach(task => {
         if (!task.due || task.status === 'completed') return;
@@ -58,8 +35,7 @@ class TodoSummaryCard extends HTMLElement {
     });
 
     this.render(tasks);
-  }, 500);
-}
+  }
 
   render(tasks) {
     this.innerHTML = `

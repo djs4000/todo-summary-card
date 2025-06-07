@@ -14,51 +14,52 @@ class TodoSummaryCard extends HTMLElement {
   }
 
   async refreshTasks(hass) {
-    const lists = this._config.entities || [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const lists = this._config.entities || [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const tasks = [];
+  const tasks = [];
 
-    for (const entityId of lists) {
-      console.log("Calling get_items for", entityId);
-      try {
-        await hass.callService('todo', 'get_items', {
-          entity_id: entityId,
-          return_response: true
-        });
-      } catch (e) {
-        console.warn("Service call failed for", entityId, e);
-      }
-    }
-
-    // Wait for Home Assistant to refresh state
-    setTimeout(() => {
-      lists.forEach(entityId => {
-        const entity = hass.states[entityId];
-        console.log("Checking entity state:", entityId, entity);
-
-        if (!entity || !entity.attributes || !Array.isArray(entity.attributes.items)) return;
-
-        entity.attributes.items.forEach(task => {
-          if (!task.due || task.status === 'completed') return;
-
-          const dueDate = new Date(task.due);
-          dueDate.setHours(0, 0, 0, 0);
-
-          if (dueDate <= today) {
-            tasks.push({
-              summary: task.summary,
-              due: task.due,
-              list: entityId
-            });
-          }
-        });
+  for (const entityId of lists) {
+    try {
+      console.log("Requesting items via WebSocket for:", entityId);
+      await hass.connection.sendMessagePromise({
+        type: "todo/get_items",
+        entity_id: entityId,
+        return_response: true
       });
-
-      this.render(tasks);
-    }, 500);
+    } catch (e) {
+      console.warn("WebSocket call failed for", entityId, e);
+    }
   }
+
+  // Delay to let HA update states
+  setTimeout(() => {
+    lists.forEach(entityId => {
+      const entity = hass.states[entityId];
+      console.log("Checking entity state:", entityId, entity);
+
+      if (!entity || !entity.attributes || !Array.isArray(entity.attributes.items)) return;
+
+      entity.attributes.items.forEach(task => {
+        if (!task.due || task.status === 'completed') return;
+
+        const dueDate = new Date(task.due);
+        dueDate.setHours(0, 0, 0, 0);
+
+        if (dueDate <= today) {
+          tasks.push({
+            summary: task.summary,
+            due: task.due,
+            list: entityId
+          });
+        }
+      });
+    });
+
+    this.render(tasks);
+  }, 500);
+}
 
   render(tasks) {
     this.innerHTML = `
