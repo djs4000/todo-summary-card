@@ -1,0 +1,26 @@
+blueprint:
+  name: Refresh Todo Lists
+  description: Periodically refresh one or more todo lists using the `todo.get_items` service so they work with custom cards.
+  domain: automation
+  source_url: https://github.com/djs4000/todo-summary-card/blueprints/get_todos.yaml
+  input:
+    todo_lists:
+      name: Todo Lists
+      description: One or more todo entities to refresh.
+      selector:
+        entity:
+          domain: todo
+          multiple: true
+
+trigger:
+  - platform: time_pattern
+    minutes: "/2"
+
+action:
+  - repeat:
+      for_each: !input todo_lists
+      sequence:
+        - service: todo.get_items
+          data:
+            entity_id: "{{ repeat.item }}"
+mode: single
