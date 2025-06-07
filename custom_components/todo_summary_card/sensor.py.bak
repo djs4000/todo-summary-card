@@ -15,12 +15,13 @@ class TodoSummarySensor(SensorEntity):
 
         for entity_id in self._todo_lists:
             try:
-                response = await self.hass.services.async_call_get_response(
+                response = await self.hass.services.async_call(
                     "todo",
                     "get_items",
-                    {"entity_id": entity_id}
-                }
-)
+                    {"entity_id": entity_id},
+                    blocking=True,
+                    return_response=True
+                )
 
                 tasks = response.get("items", [])
                 pending = [t["summary"] for t in tasks if t["status"] == "needs_action"]
