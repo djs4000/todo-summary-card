@@ -1,5 +1,5 @@
 class TodoSummaryCard extends HTMLElement {
-set hass(hass) {
+ set hass(hass) {
   const config = this._config;
   const lists = config.entities || [];
   const today = new Date();
@@ -41,6 +41,18 @@ set hass(hass) {
       </div>
     </ha-card>
   `;
+}
+
+  setConfig(config) {
+    if (!config.entities || !Array.isArray(config.entities)) {
+      throw new Error("You need to define an array of todo list entities.");
+    }
+    this._config = config;
+  }
+
+  getCardSize() {
+    return 3;
+  }
 }
 
 customElements.define('todo-summary-card', TodoSummaryCard);
