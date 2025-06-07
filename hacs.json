@@ -1,15 +1,10 @@
 {
   "name": "Todo Summary Card",
-  "author": "djs4000",
-  "description": "A Lovelace card that shows overdue or due-today tasks from multiple todo lists.",
+  "content_in_root": false,
+  "domain": "todo_summary_card",
+  "documentation": "https://github.com/djs4000/todo-summary-card",
+  "issue_tracker": "https://github.com/djs4000/todo-summary-card/issues",
+  "codeowners": ["@djs4000"],
   "version": "1.0.0",
-  "type": "module",
-  "keywords": ["lovelace", "todo", "card"],
-  "repository": "https://github.com/djs4000/todo-summary-card?",
-  "resources": [
-    {
-      "file": "dist/todo-summary-card.js",
-      "type": "module"
-    }
-  ]
+  "type": "integration"
 }

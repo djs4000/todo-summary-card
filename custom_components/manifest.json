@@ -1,0 +1,9 @@
+{
+  "domain": "task_sensor",
+  "name": "Multi List Task Sensor",
+  "version": "1.0.0",
+  "documentation": "https://github.com/djs4000/task_sensor",
+  "requirements": [],
+  "codeowners": ["@djs4000"],
+  "config_flow": true
+}
