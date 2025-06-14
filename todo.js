@@ -20,7 +20,7 @@ class MyTodoCard extends HTMLElement {
         domain: "todo",
         service: "get_items",
         target: { entity_id: entity },
-		return_response: true  // <-- explicitly required
+		return_response: true
       }).then(response => ({ entity, response }))
     )).then(results => {
       let html = '';
