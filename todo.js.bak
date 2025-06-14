@@ -1,10 +1,11 @@
-class MyTodoCard extends HTMLElement {
+lass MyTodoCard extends HTMLElement {
 
   setConfig(config) {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error("You need to define 'entities' as an array");
     }
     this.config = config;
+    this._fetched = false;  // reset fetch flag when config changes
   }
 
   set hass(hass) {
@@ -15,7 +16,11 @@ class MyTodoCard extends HTMLElement {
       this.content = this.querySelector('.card-content');
     }
 
-    this.fetchTodos(hass);
+    // Only fetch once per load
+    if (!this._fetched) {
+      this._fetched = true;
+      this.fetchTodos(hass);
+    }
   }
 
   async fetchTodos(hass) {
@@ -31,7 +36,6 @@ class MyTodoCard extends HTMLElement {
           return_response: true
         });
 
-        // Corrected access path
         const items = response.response[entity]?.items || [];
 
         return { entity, items };
@@ -41,7 +45,7 @@ class MyTodoCard extends HTMLElement {
 
       let html = '';
       results.forEach(({ entity, items }) => {
-        if(items.length) {
+        if (items.length) {
           html += `<b>${entity.replace('todo.', '')}</b><ul>`;
           items.forEach(item => {
             html += `<li>${item.summary}</li>`;
