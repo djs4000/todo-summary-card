@@ -1,26 +1,38 @@
-lass MyTodoCard extends HTMLElement {
+class MyTodoCard extends HTMLElement {
+
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._fetched = false;
+    this._hass = null;
+  }
 
   setConfig(config) {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error("You need to define 'entities' as an array");
     }
     this.config = config;
-    this._fetched = false;  // reset fetch flag when config changes
   }
 
   set hass(hass) {
-    if (!this.content) {
-      this.innerHTML = `<ha-card header="${this.config.title || 'My Todo Lists'}">
-        <div class="card-content">Loading...</div>
-      </ha-card>`;
-      this.content = this.querySelector('.card-content');
-    }
+    this._hass = hass;
+  }
 
-    // Only fetch once per load
-    if (!this._fetched) {
+  connectedCallback() {
+    if (!this._fetched && this._hass && this.config) {
       this._fetched = true;
-      this.fetchTodos(hass);
+      this.renderCardSkeleton();
+      this.fetchTodos(this._hass);
     }
+  }
+
+  renderCardSkeleton() {
+    this.shadowRoot.innerHTML = `
+      <ha-card header="${this.config.title || 'My Todo Lists'}">
+        <div class="card-content">Loading...</div>
+      </ha-card>
+    `;
+    this.content = this.shadowRoot.querySelector('.card-content');
   }
 
   async fetchTodos(hass) {
@@ -37,7 +49,6 @@ lass MyTodoCard extends HTMLElement {
         });
 
         const items = response.response[entity]?.items || [];
-
         return { entity, items };
       });
 
