@@ -47,5 +47,5 @@ async set hass(hass) {
     this.content.innerHTML = "Error loading todo lists.";
   }
 }
-
+}
 customElements.define('my-todo-card', MyTodoCard);
