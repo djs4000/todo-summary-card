@@ -1,11 +1,11 @@
 class MyTodoCard extends HTMLElement {
 
-  setConfig(config) {
-    this.config = config;
-    if (!config.entities) {
-      throw new Error("You need to define todo entities");
-    }
-  }
+	setConfig(config) {
+	  if (!config.entities || !Array.isArray(config.entities)) {
+		throw new Error("You need to define 'entities' as an array");
+	  }
+	  this.config = config;
+	}
 
   set hass(hass) {
   if (!this.content) {
