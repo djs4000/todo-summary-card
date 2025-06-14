@@ -7,7 +7,7 @@ class MyTodoCard extends HTMLElement {
     }
   }
 
-async set hass(hass) {
+  set hass(hass) {
   if (!this.content) {
     this.innerHTML = `<ha-card header="${this.config.title || 'My Todo Lists'}">
       <div class="card-content">Loading...</div>
