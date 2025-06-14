@@ -32,7 +32,9 @@ class MyTodoCard extends HTMLElement {
       return { entity, response };
     });
 
+
     const results = Promise.all(promises);
+	
 
     let html = '';
     results.forEach(({ entity, response }) => {
