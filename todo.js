@@ -1,5 +1,13 @@
 // Define a custom HTML element for the Lovelace card
 class MyTodoCard extends HTMLElement {
+	static getConfigElement() {
+	  return MyTodoCard.getConfigElement();
+	}
+
+	static getStubConfig() {
+	  return MyTodoCard.getStubConfig();
+	}
+
 
   constructor() {
     super();
@@ -57,57 +65,65 @@ class MyTodoCard extends HTMLElement {
   }
 
   // Fetch todo items from each configured entity using WebSocket API
-  async fetchTodos(hass) {
-    const entities = this.config.entities;
+	async fetchTodos(hass) {
+	  const { entities, show_completed, days_ahead } = this.config;
+	  const today = new Date();
+	  const maxDate = new Date(today);
+	  maxDate.setDate(today.getDate() + days_ahead - 1);
 
-    try {
-      // Prepare a list of WebSocket requests, one for each entity
-      const promises = entities.map(async (entity) => {
-        const response = await hass.callWS({
-          type: "call_service",            // Call a service
-          domain: "todo",                  // Domain is 'todo'
-          service: "get_items",            // We want to get items
-          target: { entity_id: entity },   // Specify which todo entity
-          return_response: true            // REQUIRED to get results back
-        });
+	  try {
+		const promises = entities.map(async (entity) => {
+		  const response = await hass.callWS({
+			type: "call_service",
+			domain: "todo",
+			service: "get_items",
+			target: { entity_id: entity },
+			return_response: true
+		  });
 
-        // The items are nested in response.response[entity]
-        const items = response.response[entity]?.items || [];
+		  const items = response.response[entity]?.items || [];
 
-        // Return both the entity name and its items
-        return { entity, items };
-      });
+		  // Filter items:
+		  const filteredItems = items.filter(item => {
+			if (!show_completed && item.status !== 'needs_action') return false;
 
-      // Wait for all todo lists to be fetched in parallel
-      const results = await Promise.all(promises);
+			if (item.due) {
+			  const dueDate = new Date(item.due);
+			  // Strip time component for comparison
+			  dueDate.setHours(0, 0, 0, 0);
+			  return dueDate <= maxDate;
+			}
 
-      // Build HTML output for the card
-      let html = '';
-      results.forEach(({ entity, items }) => {
-        const title = entity.replace('todo.', ''); // Clean up display title
+			// If no due date, include it only if showing completed or needs_action
+			return true;
+		  });
 
-        // If items exist, show them as a list
-        if (items.length) {
-          html += `<b>${title}</b><ul>`;
-          items.forEach(item => {
-            html += `<li>${item.summary}</li>`;
-          });
-          html += '</ul>';
-        } else {
-          // Otherwise just say there are no items
-          html += `<b>${title}</b>: No items found.<br>`;
-        }
-      });
+		  return { entity, items: filteredItems };
+		});
 
-      // Inject the resulting HTML into the card
-      this.content.innerHTML = html;
+		const results = await Promise.all(promises);
 
-    } catch (error) {
-      // Show an error in the card if something goes wrong
-      console.error("Error fetching todo items:", error);
-      this.content.innerHTML = "Error loading todo lists.";
-    }
-  }
+		let html = '';
+		results.forEach(({ entity, items }) => {
+		  const title = entity.replace('todo.', '');
+		  if (items.length) {
+			html += `<b>${title}</b><ul>`;
+			items.forEach(item => {
+			  html += `<li>${item.summary}</li>`;
+			});
+			html += '</ul>';
+		  } else {
+			html += `<b>${title}</b>: No items found.<br>`;
+		  }
+		});
+
+		this.content.innerHTML = html;
+
+	  } catch (error) {
+		console.error("Error fetching todo items:", error);
+		this.content.innerHTML = "Error loading todo lists.";
+	  }
+	}
 
   // This tells Home Assistant how tall the card is
   getCardSize() {
@@ -117,3 +133,60 @@ class MyTodoCard extends HTMLElement {
 
 // Register the custom element so Lovelace can use it
 customElements.define('my-todo-card', MyTodoCard);
+
+// Provide GUI editor support
+MyTodoCard.getConfigElement = async function () {
+  const element = document.createElement("div");
+
+  element.setConfig = function (config) {
+    this.innerHTML = `
+      <label>
+        Title:<br>
+        <input id="title" value="${config.title || ''}">
+      </label><br><br>
+
+      <label>
+        Todo Entities (comma-separated):<br>
+        <input id="entities" value="${(config.entities || []).join(', ')}">
+      </label><br><br>
+
+      <label>
+        Show Completed Items:
+        <input type="checkbox" id="showCompleted" ${config.show_completed ? 'checked' : ''}>
+      </label><br><br>
+
+      <label>
+        Days Ahead to Show (1 = today only):<br>
+        <input type="number" id="daysAhead" min="1" max="30" value="${config.days_ahead || 1}">
+      </label>
+    `;
+
+    this.getConfig = () => {
+      const title = this.querySelector("#title").value;
+      const entities = this.querySelector("#entities").value
+        .split(",")
+        .map((e) => e.trim())
+        .filter(Boolean);
+      const showCompleted = this.querySelector("#showCompleted").checked;
+      const daysAhead = parseInt(this.querySelector("#daysAhead").value) || 1;
+
+      return {
+        type: "custom:my-todo-card",
+        title,
+        entities,
+        show_completed: showCompleted,
+        days_ahead: daysAhead,
+      };
+    };
+  };
+
+  return element;
+};
+
+// Required for HA GUI editor to recognize the card as configurable
+MyTodoCard.getStubConfig = () => ({
+  title: 'My Todo Lists',
+  entities: ['todo.shopping_list'],
+  show_completed: false,
+  days_ahead: 1
+});
