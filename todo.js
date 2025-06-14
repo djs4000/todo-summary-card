@@ -1,62 +1,64 @@
 class MyTodoCard extends HTMLElement {
 
-	setConfig(config) {
-	  if (!config.entities || !Array.isArray(config.entities)) {
-		throw new Error("You need to define 'entities' as an array");
-	  }
-	  this.config = config;
-	}
+  setConfig(config) {
+    if (!config.entities || !Array.isArray(config.entities)) {
+      throw new Error("You need to define 'entities' as an array");
+    }
+    this.config = config;
+  }
 
   set hass(hass) {
-  if (!this.content) {
-    this.innerHTML = `<ha-card header="${this.config.title || 'My Todo Lists'}">
-      <div class="card-content">Loading...</div>
-    </ha-card>`;
-    this.content = this.querySelector('.card-content');
+    if (!this.content) {
+      this.innerHTML = `<ha-card header="${this.config.title || 'My Todo Lists'}">
+        <div class="card-content">Loading...</div>
+      </ha-card>`;
+      this.content = this.querySelector('.card-content');
+    }
+
+    this.fetchTodos(hass);
   }
 
-  const entities = this.config.entities;
+  async fetchTodos(hass) {
+    const entities = this.config.entities;
 
-  try {
-    const promises = entities.map( entity => {
-      const response = hass.callWS({
-        type: "call_service",
-        domain: "todo",
-        service: "get_items",
-        target: { entity_id: entity },
-        return_response: true
+    try {
+      const promises = entities.map(async (entity) => {
+        const response = await hass.callWS({
+          type: "call_service",
+          domain: "todo",
+          service: "get_items",
+          target: { entity_id: entity },
+          return_response: true
+        });
+
+        // Corrected access path
+        const items = response.response[entity]?.items || [];
+
+        return { entity, items };
       });
 
-      console.log(`Full response for entity ${entity}:`, response);
+      const results = await Promise.all(promises);
 
-      return { entity, response };
-    });
+      let html = '';
+      results.forEach(({ entity, items }) => {
+        if(items.length) {
+          html += `<b>${entity.replace('todo.', '')}</b><ul>`;
+          items.forEach(item => {
+            html += `<li>${item.summary}</li>`;
+          });
+          html += '</ul>';
+        } else {
+          html += `<b>${entity.replace('todo.', '')}</b>: No items found.<br>`;
+        }
+      });
 
+      this.content.innerHTML = html;
 
-    const results = Promise.all(promises);
-	
-
-    let html = '';
-    results.forEach(({ entity, response }) => {
-      // Adjust this once you confirm the exact structure from the console
-      if(response.response && response.response.items) {
-        html += `<b>${entity.replace('todo.', '')}</b><ul>`;
-        response.response.items.forEach(item => {
-          html += `<li>${item.summary}</li>`;
-        });
-        html += '</ul>';
-      } else {
-        html += `<b>${entity.replace('todo.', '')}</b>: No items found.<br>`;
-      }
-    });
-
-    this.content.innerHTML = html;
-
-  } catch (error) {
-    console.error("Error fetching todo items:", error);
-    this.content.innerHTML = "Error loading todo lists.";
+    } catch (error) {
+      console.error("Error fetching todo items:", error);
+      this.content.innerHTML = "Error loading todo lists.";
+    }
   }
-}
 
   getCardSize() {
     return 1;
