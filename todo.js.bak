@@ -53,6 +53,6 @@ async set hass(hass) {
   getCardSize() {
     return 1;
   }
-//}
+}
 
 customElements.define('my-todo-card', MyTodoCard);

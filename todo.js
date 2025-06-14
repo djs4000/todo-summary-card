@@ -1,4 +1,12 @@
 class MyTodoCard extends HTMLElement {
+
+  setConfig(config) {
+    this.config = config;
+    if (!config.entities) {
+      throw new Error("You need to define todo entities");
+    }
+  }
+
 async set hass(hass) {
   if (!this.content) {
     this.innerHTML = `<ha-card header="${this.config.title || 'My Todo Lists'}">
@@ -47,8 +55,6 @@ async set hass(hass) {
     this.content.innerHTML = "Error loading todo lists.";
   }
 }
-
-  setConfig(config) {}
 
   getCardSize() {
     return 1;
