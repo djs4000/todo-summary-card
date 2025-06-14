@@ -1,9 +1,0 @@
-{
-  "domain": "todo_summary_card",
-  "name": "Todo Summary Card",
-  "version": "1.0.0",
-  "config_flow": true,
-  "requirements": [],
-  "codeowners": ["@djs4000"],
-  "documentation": "https://github.com/djs4000/todo-summary-card"
-}
