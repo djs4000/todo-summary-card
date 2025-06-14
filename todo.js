@@ -13,7 +13,19 @@ class MyTodoCard extends HTMLElement {
       "todo.shopping_list",
       "todo.home_stuff"
     ];
+	
+	try {
+    const promises = entities.map(async (entity) => {
+      const response = await hass.callWS({
+        type: "call_service",
+        domain: "todo",
+        service: "get_items",
+        target: { entity_id: entity },
+        return_response: true
+      });
 
+      console.log(`Full response for entity ${entity}:`, response);
+/* 
     Promise.all(todoEntities.map(entity => 
       hass.callWS({
         type: "call_service",
@@ -31,7 +43,7 @@ class MyTodoCard extends HTMLElement {
         });
         html += `</ul>`;
       });
-
+ */
       this.content.innerHTML = html;
     }).catch(err => {
       console.error(err);
@@ -44,6 +56,6 @@ class MyTodoCard extends HTMLElement {
   getCardSize() {
     return 1;
   }
-}
+//}
 
 customElements.define('my-todo-card', MyTodoCard);
