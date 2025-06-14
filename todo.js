@@ -19,7 +19,7 @@ class MyTodoCard extends HTMLElement {
 
   try {
     const promises = entities.map(async (entity) => {
-      const response = await hass.callWS({
+      const response = hass.callWS({
         type: "call_service",
         domain: "todo",
         service: "get_items",
