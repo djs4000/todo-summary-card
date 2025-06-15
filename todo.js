@@ -1,5 +1,5 @@
 // Define a custom HTML element for the Lovelace card
-class MyTodoCard extends HTMLElement {
+class MyTodoCard extends LitElement {
 	static getConfigElement() {
 	  return MyTodoCard.getConfigElement();
 	}
