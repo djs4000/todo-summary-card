@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit-element@latest/+esm?module';
-import { fireEvent } from 'custom-card-helpers';
+import { fireEvent } from 'https://cdn.jsdelivr.net/npm/custom-card-helpers';
 
 // Define a custom HTML element for the Lovelace card
 class MyTodoCard extends HTMLElement {
