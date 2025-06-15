@@ -1,5 +1,4 @@
 import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit-element@latest/+esm?module';
-import { fireEvent } from 'https://cdn.jsdelivr.net/npm/custom-card-helpers';
 
 // Define a custom HTML element for the Lovelace card
 class MyTodoCard extends HTMLElement {
@@ -177,7 +176,11 @@ class MyTodoCardEditor extends LitElement {
   _addEntity() {
     const newEntities = [...(this.config.entities || []), 'todo.new_item'];
     this.setConfig({ ...this.config, entities: newEntities });
-    fireEvent(this, 'config-changed', { config: this.config });
+    window.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: this.config },
+      bubbles: true,
+      composed: true
+    }));
   }
 
   static styles = css`
