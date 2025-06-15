@@ -1,153 +1,130 @@
+import { LitElement, html, css } from 'lit';
+import { fireEvent } from 'custom-card-helpers';
+
 // Define a custom HTML element for the Lovelace card
 class MyTodoCard extends HTMLElement {
-  
-  contains;
-  content;
-
-  //required
-  setConfig(config) {
-    this.config = config;
-  }
 
   constructor() {
     super();
-
-    // Attach a shadow DOM to isolate styles and structure
     this.attachShadow({ mode: 'open' });
-
-    // Internal flags and state
-    this._fetched = false;  // used to prevent repeated fetches
-    this._hass = null;      // stores the Home Assistant instance
+    this._fetched = false;
+    this._hass = null;
   }
 
-  // Called when the card is configured in Lovelace
   setConfig(config) {
-    // Validate that 'entities' is provided and is an array
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error("You need to define 'entities' as an array");
     }
-
-    // Store configuration
     this.config = config;
+    this._fetched = false;
   }
 
-  // This is called every time Home Assistant updates its state
   set hass(hass) {
-    // Save the hass instance for later use
     this._hass = hass;
   }
 
-  // Called once when the card is first added to the DOM
   connectedCallback() {
-    // Only fetch data if we haven't already and we have config and hass
     if (!this._fetched && this._hass && this.config) {
       this._fetched = true;
-
-      // Render an initial "Loading..." card
       this.renderCardSkeleton();
-
-      // Begin fetching todo list data
       this.fetchTodos(this._hass);
     }
   }
 
-  // Draw the card skeleton structure
   renderCardSkeleton() {
-    // Setup the basic card layout with a header and placeholder
     this.shadowRoot.innerHTML = `
       <ha-card header="${this.config.title || 'My Todo Lists'}">
         <div class="card-content">Loading...</div>
       </ha-card>
     `;
-
-    // Save a reference to the card content container for later updates
     this.content = this.shadowRoot.querySelector('.card-content');
   }
 
-  // Fetch todo items from each configured entity using WebSocket API
-	async fetchTodos(hass) {
-	  const { entities, show_completed, days_ahead } = this.config;
-	  const today = new Date();
-	  const maxDate = new Date(today);
-	  maxDate.setDate(today.getDate() + days_ahead - 1);
+  async fetchTodos(hass) {
+    const { entities, show_completed, days_ahead } = this.config;
+    const today = new Date();
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + days_ahead - 1);
 
-	  try {
-		const promises = entities.map(async (entity) => {
-		  const response = await hass.callWS({
-			type: "call_service",
-			domain: "todo",
-			service: "get_items",
-			target: { entity_id: entity },
-			return_response: true
-		  });
+    try {
+      const promises = entities.map(async (entity) => {
+        const response = await hass.callWS({
+          type: "call_service",
+          domain: "todo",
+          service: "get_items",
+          target: { entity_id: entity },
+          return_response: true
+        });
 
-		  const items = response.response[entity]?.items || [];
-      console.log('here!'+items)  // dubug
-		  // Filter items:
-		  const filteredItems = items.filter(item => {
-			if (!show_completed && item.status !== 'needs_action') return false;
+        const items = response.response[entity]?.items || [];
+        const filteredItems = items.filter(item => {
+          if (!show_completed && item.status !== 'needs_action') return false;
+          if (item.due) {
+            const dueDate = new Date(item.due);
+            dueDate.setHours(0, 0, 0, 0);
+            return dueDate <= maxDate;
+          }
+          return true;
+        });
 
-			if (item.due) {
-			  const dueDate = new Date(item.due);
-			  // Strip time component for comparison
-			  dueDate.setHours(0, 0, 0, 0);
-			  return dueDate <= maxDate;
-			}
+        return { entity, items: filteredItems };
+      });
 
-			// If no due date, include it only if showing completed or needs_action
-			return true;
-		  });
+      const results = await Promise.all(promises);
 
-		  return { entity, items: filteredItems };
-		});
+      let html = '';
+      results.forEach(({ entity, items }) => {
+        const title = hass.states[entity]?.attributes.friendly_name || entity;
+        if (items.length) {
+          html += `<b>${title}</b><ul>`;
+          items.forEach(item => {
+            html += `<li>${item.summary}</li>`;
+          });
+          html += '</ul>';
+        } else {
+          html += `<b>${title}</b>: No items found.<br>`;
+        }
+      });
 
-		const results = await Promise.all(promises);
+      this.content.innerHTML = html;
 
-		let html = '';
-		results.forEach(({ entity, items }) => {
-		  const title = hass.states[entity]?.attributes.friendly_name || entity;
-		  if (items.length) {
-			html += `<b>${title}</b><ul>`;
-			items.forEach(item => {
-			  html += `<li>${item.summary}</li>`;
-			});
-			html += '</ul>';
-		  } else {
-			html += `<b>${title}</b>: No items found.<br>`;
-		  }
-		});
+    } catch (error) {
+      console.error("Error fetching todo items:", error);
+      this.content.innerHTML = "Error loading todo lists.";
+    }
+  }
 
-		this.content.innerHTML = html;
-
-	  } catch (error) {
-		console.error("Error fetching todo items:", error);
-		this.content.innerHTML = "Error loading todo lists.";
-	  }
-	}
-
-  // This tells Home Assistant how tall the card is
   getCardSize() {
-    return 1; // Small card, 1 row
+    return 1;
+  }
+
+  static getConfigElement() {
+    return document.createElement('my-todo-card-editor');
+  }
+
+  static getStubConfig() {
+    return {
+      title: 'My Todo Lists',
+      entities: ['todo.shopping_list'],
+      show_completed: false,
+      days_ahead: 1
+    };
   }
 }
 
-// Register the custom element so Lovelace can use it
 customElements.define('my-todo-card', MyTodoCard);
 
-// add card to GUI card selector
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: "my-todo-card",
-    name: "My todo card",
-    preview: true,
-    description: "A custom card made by me!", // optional
-    documentationURL: "https://github.com/djs4000/todo-summary-card"
+  type: 'my-todo-card',
+  name: 'My Todo Card',
+  preview: true,
+  description: 'A custom card made by me!'
 });
-
-// Config editor as a LitElement
 
 class MyTodoCardEditor extends LitElement {
   static properties = {
+    hass: {},
     config: {},
   };
 
@@ -156,10 +133,8 @@ class MyTodoCardEditor extends LitElement {
   }
 
   getConfig() {
-    const entities = this.shadowRoot.getElementById('entities').value
-      .split(',')
-      .map(e => e.trim())
-      .filter(Boolean);
+    const entityPickers = this.shadowRoot.querySelectorAll("ha-entity-picker");
+    const entities = Array.from(entityPickers).map(picker => picker.value).filter(Boolean);
 
     return {
       type: 'custom:my-todo-card',
@@ -171,35 +146,48 @@ class MyTodoCardEditor extends LitElement {
   }
 
   render() {
+    const entities = this.config.entities || [];
+
     return html`
-      <div>
-        <label>
-          Title:<br />
-          <input id="title" .value=${this.config.title || ''} />
-        </label>
-        <br /><br />
+      <div class="card-config">
+        <label>Title:</label><br />
+        <input id="title" .value=${this.config.title || ''} /><br /><br />
 
-        <label>
-          Todo Entities (comma-separated):<br />
-          <input id="entities" .value=${(this.config.entities || []).join(', ')} />
-        </label>
-        <br /><br />
+        <label>Todo Entities:</label><br />
+        ${entities.map(entity => html`
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${entity}
+            .includeDomains=${['todo']}
+            allow-custom
+          ></ha-entity-picker>
+        `)}
+        <button @click=${this._addEntity}>Add Entity</button><br /><br />
 
-        <label>
-          Show Completed Items:
+        <label>Show Completed Items:
           <input type="checkbox" id="showCompleted" ?checked=${this.config.show_completed || false} />
-        </label>
-        <br /><br />
+        </label><br /><br />
 
-        <label>
-          Days Ahead to Show (1 = today only):<br />
-          <input type="number" id="daysAhead" min="1" max="30" .value=${this.config.days_ahead || 1} />
-        </label>
+        <label>Days Ahead to Show (1 = today only):</label><br />
+        <input type="number" id="daysAhead" min="1" max="30" .value=${this.config.days_ahead || 1} />
       </div>
     `;
   }
 
+  _addEntity() {
+    const newEntities = [...(this.config.entities || []), 'todo.new_item'];
+    this.setConfig({ ...this.config, entities: newEntities });
+    fireEvent(this, 'config-changed', { config: this.config });
+  }
+
   static styles = css`
+    .card-config {
+      padding: 12px;
+    }
+    ha-entity-picker {
+      display: block;
+      margin-bottom: 10px;
+    }
     input {
       width: 100%;
       margin-top: 4px;
@@ -208,10 +196,4 @@ class MyTodoCardEditor extends LitElement {
   `;
 }
 
-// Required for HA GUI editor to recognize the card as configurable
-MyTodoCard.getStubConfig = () => ({
-  title: 'My Todo Lists',
-  entities: ['todo.shopping_list'],
-  show_completed: false,
-  days_ahead: 1
-});
+customElements.define('my-todo-card-editor', MyTodoCardEditor);
