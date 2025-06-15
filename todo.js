@@ -144,6 +144,18 @@ class MyTodoCard extends HTMLElement {
 customElements.define('my-todo-card', MyTodoCard);
 
 
+// add card to GUI card selector
+window.customCards = window.customCards || [];
+window.customCards.push({
+    type: "my-todo-card",
+    name: "My todo card",
+    preview: true,
+    description: "A custom card made by me!", // optional
+    documentationURL: "https://github.com/djs4000/todo-summary-card"
+});
+console.log('i made it past this')
+
+
 // Provide GUI editor support
 class ContentCardEditor extends LitElement {
   setConfig(config) {
@@ -218,15 +230,3 @@ MyTodoCard.getStubConfig = () => ({
   show_completed: false,
   days_ahead: 1
 });
-
-// add card to GUI card selector
-window.customCards = window.customCards || [];
-window.customCards.push({
-    type: "my-todo-card",
-    name: "My todo card",
-    preview: true,
-    description: "A custom card made by me!", // optional
-    documentationURL: "https://github.com/djs4000/todo-summary-card"
-});
-
-//does this work
