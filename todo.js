@@ -82,7 +82,7 @@ class MyTodoCard extends HTMLElement {
 		  });
 
 		  const items = response.response[entity]?.items || [];
-
+      console.log(items)
 		  // Filter items:
 		  const filteredItems = items.filter(item => {
 			if (!show_completed && item.status !== 'needs_action') return false;
@@ -144,7 +144,7 @@ window.customCards.push({
     description: "A custom card made by me!", // optional
     documentationURL: "https://github.com/djs4000/todo-summary-card"
 });
-console.log('i made it past this')
+
 
 
 // Provide GUI editor support
