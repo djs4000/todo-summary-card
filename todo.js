@@ -82,7 +82,7 @@ class MyTodoCard extends HTMLElement {
 		  });
 
 		  const items = response.response[entity]?.items || [];
-      console.log(items)
+      console.log('here!'+items)  // dubug
 		  // Filter items:
 		  const filteredItems = items.filter(item => {
 			if (!show_completed && item.status !== 'needs_action') return false;
