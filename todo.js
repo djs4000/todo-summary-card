@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit-element';
+import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit-element@latest/+esm?module';
 import { fireEvent } from 'custom-card-helpers';
 
 // Define a custom HTML element for the Lovelace card
