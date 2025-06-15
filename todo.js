@@ -105,7 +105,7 @@ class MyTodoCard extends HTMLElement {
 
 		let html = '';
 		results.forEach(({ entity, items }) => {
-		  const title = entity.friendly_name;
+		  const title = hass.states[entity]?.attributes.friendly_name || entity;
 		  if (items.length) {
 			html += `<b>${title}</b><ul>`;
 			items.forEach(item => {
@@ -134,7 +134,6 @@ class MyTodoCard extends HTMLElement {
 // Register the custom element so Lovelace can use it
 customElements.define('my-todo-card', MyTodoCard);
 
-
 // add card to GUI card selector
 window.customCards = window.customCards || [];
 window.customCards.push({
@@ -145,74 +144,69 @@ window.customCards.push({
     documentationURL: "https://github.com/djs4000/todo-summary-card"
 });
 
+// Config editor as a LitElement
 
-
-// Provide GUI editor support
-class ContentCardEditor extends LitElement {
-  setConfig(config) {
-    this._config = config;
-  }
-
-  configChanged(newConfig) {
-    const event = new Event("config-changed", {
-      bubbles: true,
-      composed: true,
-    });
-    event.detail = { config: newConfig };
-    this.dispatchEvent(event);
-  }
-}
-
-
-
-/* previous code 
-MyTodoCard.getConfigElement = async function () {
-  const element = document.createElement("div");
-
-  element.setConfig = function (config) {
-    this.innerHTML = `
-      <label>
-        Title:<br>
-        <input id="title" value="${config.title || ''}">
-      </label><br><br>
-
-      <label>
-        Todo Entities (comma-separated):<br>
-        <input id="entities" value="${(config.entities || []).join(', ')}">
-      </label><br><br>
-
-      <label>
-        Show Completed Items:
-        <input type="checkbox" id="showCompleted" ${config.show_completed ? 'checked' : ''}>
-      </label><br><br>
-
-      <label>
-        Days Ahead to Show (1 = today only):<br>
-        <input type="number" id="daysAhead" min="1" max="30" value="${config.days_ahead || 1}">
-      </label>
-    `;
-
-    this.getConfig = () => {
-      const title = this.querySelector("#title").value;
-      const entities = this.querySelector("#entities").value
-        .split(",")
-        .map((e) => e.trim())
-        .filter(Boolean);
-      const showCompleted = this.querySelector("#showCompleted").checked;
-      const daysAhead = parseInt(this.querySelector("#daysAhead").value) || 1;
-
-      return {
-        type: "custom:my-todo-card",
-        title,
-        entities,
-        show_completed: showCompleted,
-        days_ahead: daysAhead,
-      };
-    };
+class MyTodoCardEditor extends LitElement {
+  static properties = {
+    config: {},
   };
 
-  return element;
-}; */
+  setConfig(config) {
+    this.config = config;
+  }
+
+  getConfig() {
+    const entities = this.shadowRoot.getElementById('entities').value
+      .split(',')
+      .map(e => e.trim())
+      .filter(Boolean);
+
+    return {
+      type: 'custom:my-todo-card',
+      title: this.shadowRoot.getElementById('title').value,
+      entities,
+      show_completed: this.shadowRoot.getElementById('showCompleted').checked,
+      days_ahead: parseInt(this.shadowRoot.getElementById('daysAhead').value) || 1,
+    };
+  }
+
+  render() {
+    return html`
+      <div>
+        <label>
+          Title:<br />
+          <input id="title" .value=${this.config.title || ''} />
+        </label>
+        <br /><br />
+
+        <label>
+          Todo Entities (comma-separated):<br />
+          <input id="entities" .value=${(this.config.entities || []).join(', ')} />
+        </label>
+        <br /><br />
+
+        <label>
+          Show Completed Items:
+          <input type="checkbox" id="showCompleted" ?checked=${this.config.show_completed || false} />
+        </label>
+        <br /><br />
+
+        <label>
+          Days Ahead to Show (1 = today only):<br />
+          <input type="number" id="daysAhead" min="1" max="30" .value=${this.config.days_ahead || 1} />
+        </label>
+      </div>
+    `;
+  }
+
+  static styles = css`
+    input {
+      width: 100%;
+      margin-top: 4px;
+      margin-bottom: 10px;
+    }
+  `;
+}
 
 // Required for HA GUI editor to recognize the card as configurable
 MyTodoCard.getStubConfig = () => ({
