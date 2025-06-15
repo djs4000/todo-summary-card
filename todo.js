@@ -9,15 +9,6 @@ class MyTodoCard extends HTMLElement {
     this.config = config;
   }
 
-/*   static getConfigElement() {
-	  return MyTodoCard.getConfigElement();
-	}
-
-	static getStubConfig() {
-	  return MyTodoCard.getStubConfig();
-	}
-
- */
   constructor() {
     super();
 
@@ -114,7 +105,7 @@ class MyTodoCard extends HTMLElement {
 
 		let html = '';
 		results.forEach(({ entity, items }) => {
-		  const title = entity.replace('todo.', '');
+		  const title = entity.friendly_name;
 		  if (items.length) {
 			html += `<b>${title}</b><ul>`;
 			items.forEach(item => {
