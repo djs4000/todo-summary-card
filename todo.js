@@ -1,5 +1,5 @@
 // Define a custom HTML element for the Lovelace card
-class MyTodoCard extends LitElement {
+class MyTodoCard extends HTMLElement {
 	static getConfigElement() {
 	  return MyTodoCard.getConfigElement();
 	}
@@ -134,7 +134,26 @@ class MyTodoCard extends LitElement {
 // Register the custom element so Lovelace can use it
 customElements.define('my-todo-card', MyTodoCard);
 
+
 // Provide GUI editor support
+class ContentCardEditor extends LitElement {
+  setConfig(config) {
+    this._config = config;
+  }
+
+  configChanged(newConfig) {
+    const event = new Event("config-changed", {
+      bubbles: true,
+      composed: true,
+    });
+    event.detail = { config: newConfig };
+    this.dispatchEvent(event);
+  }
+}
+
+
+
+/* previous code 
 MyTodoCard.getConfigElement = async function () {
   const element = document.createElement("div");
 
@@ -181,7 +200,7 @@ MyTodoCard.getConfigElement = async function () {
   };
 
   return element;
-};
+}; */
 
 // Required for HA GUI editor to recognize the card as configurable
 MyTodoCard.getStubConfig = () => ({
@@ -189,4 +208,11 @@ MyTodoCard.getStubConfig = () => ({
   entities: ['todo.shopping_list'],
   show_completed: false,
   days_ahead: 1
+});
+// add card to GUI card selector
+window.customCards = window.customCards || [];
+window.customCards.push({
+    type: "my-todo-card",
+    name: "My todo card",
+    description: "A custom card made by me!" // optional
 });
