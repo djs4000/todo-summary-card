@@ -224,7 +224,9 @@ window.customCards = window.customCards || [];
 window.customCards.push({
     type: "my-todo-card",
     name: "My todo card",
-    description: "A custom card made by me!" // optional
+    preview: true,
+    description: "A custom card made by me!", // optional
+    documentationURL: "https://github.com/djs4000/todo-summary-card"
 });
 
 //does this work
