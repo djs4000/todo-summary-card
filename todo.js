@@ -198,5 +198,4 @@ class MyTodoCardEditor extends LitElement {
     }
   `;
 }
-
 customElements.define('my-todo-card-editor', MyTodoCardEditor);
