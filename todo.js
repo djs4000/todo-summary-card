@@ -1,6 +1,15 @@
 // Define a custom HTML element for the Lovelace card
 class MyTodoCard extends HTMLElement {
-	static getConfigElement() {
+  
+  contains;
+  content;
+
+  //required
+  setConfig(config) {
+    this.config = config;
+  }
+
+/*   static getConfigElement() {
 	  return MyTodoCard.getConfigElement();
 	}
 
@@ -8,7 +17,7 @@ class MyTodoCard extends HTMLElement {
 	  return MyTodoCard.getStubConfig();
 	}
 
-
+ */
   constructor() {
     super();
 
@@ -209,6 +218,7 @@ MyTodoCard.getStubConfig = () => ({
   show_completed: false,
   days_ahead: 1
 });
+
 // add card to GUI card selector
 window.customCards = window.customCards || [];
 window.customCards.push({
@@ -216,3 +226,5 @@ window.customCards.push({
     name: "My todo card",
     description: "A custom card made by me!" // optional
 });
+
+//does this work
