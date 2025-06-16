@@ -5,8 +5,9 @@ import { terser } from 'rollup-plugin-terser';
 export default {
   input: 'src/my-todo-card.ts',
   output: {
-    file: 'dist/my-todo-card.js',
-    format: 'es'
+    dir: 'dist',
+    format: 'es',
+    sourcemap: true
   },
   plugins: [
     resolve(),
