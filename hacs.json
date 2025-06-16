@@ -1,7 +1,6 @@
 {
   "name": "My Todo Card",
-  "content_in_root": true,
-  "filename": "todo.js",
+  "filename": "my-todo-card.js",
   "domain": "todo_summary_card",
   "documentation": "https://github.com/djs4000/todo-summary-card",
   "issue_tracker": "https://github.com/djs4000/todo-summary-card/issues",

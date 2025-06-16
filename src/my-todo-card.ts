@@ -1,42 +1,45 @@
-// Main Card
-class MyTodoCard extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this._fetched = false;
-    this._hass = null;
-  }
+// my-todo-card.ts
+import { LitElement, html, css, property } from 'lit';
+import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
 
-  setConfig(config) {
+interface TodoCardConfig extends LovelaceCardConfig {
+  title: string;
+  entities: string[];
+  show_completed: boolean;
+  days_ahead: number;
+}
+
+class MyTodoCard extends LitElement {
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @property() private config!: TodoCardConfig;
+  private _fetched = false;
+  private _content = '';
+
+  static styles = css`
+    ha-card {
+      padding: 16px;
+    }
+  `;
+
+  public setConfig(config: TodoCardConfig): void {
     if (!config.entities || !Array.isArray(config.entities)) {
       throw new Error("You need to define 'entities' as an array");
     }
     this.config = config;
     this._fetched = false;
+    this._content = 'Loading...';
+    this.fetchTodos();
   }
 
-  set hass(hass) {
-    this._hass = hass;
-  }
-
-  connectedCallback() {
-    if (!this._fetched && this._hass && this.config) {
-      this._fetched = true;
-      this.renderCardSkeleton();
-      this.fetchTodos(this._hass);
-    }
-  }
-
-  renderCardSkeleton() {
-    this.shadowRoot.innerHTML = `
+  protected render() {
+    return html`
       <ha-card header="${this.config.title || 'My Todo Lists'}">
-        <div class="card-content">Loading...</div>
+        <div class="card-content">${html([this._content])}</div>
       </ha-card>
     `;
-    this.content = this.shadowRoot.querySelector('.card-content');
   }
 
-  async fetchTodos(hass) {
+  private async fetchTodos() {
     const { entities, show_completed, days_ahead } = this.config;
     const today = new Date();
     const maxDate = new Date(today);
@@ -45,7 +48,7 @@ class MyTodoCard extends HTMLElement {
 
     try {
       const promises = entities.map(async (entity) => {
-        const response = await hass.callWS({
+        const response = await this.hass.callWS({
           type: "call_service",
           domain: "todo",
           service: "get_items",
@@ -69,38 +72,33 @@ class MyTodoCard extends HTMLElement {
 
       const results = await Promise.all(promises);
 
-      let html = '';
+      let htmlContent = '';
       results.forEach(({ entity, items }) => {
-        const title = hass.states[entity]?.attributes.friendly_name || entity;
+        const title = this.hass.states[entity]?.attributes.friendly_name || entity;
         if (items.length) {
-          html += `<b>${title}</b><ul>`;
+          htmlContent += `<b>${title}</b><ul>`;
           items.forEach(item => {
-            html += `<li>${item.summary}</li>`;
+            htmlContent += `<li>${item.summary}</li>`;
           });
-          html += '</ul>';
+          htmlContent += '</ul>';
         } else {
-          html += `<b>${title}</b>: No items found.<br>`;
+          htmlContent += `<b>${title}</b>: No items found.<br>`;
         }
       });
 
-      this.content.innerHTML = html;
+      this._content = htmlContent;
+      this.requestUpdate();
 
     } catch (error) {
       console.error("Error fetching todo items:", error);
-      this.content.innerHTML = "Error loading todo lists.";
+      this._content = "Error loading todo lists.";
+      this.requestUpdate();
     }
   }
 
-  getCardSize() {
-    return 1;
-  }
-
-  static getConfigElement() {
-    return document.createElement('my-todo-card-editor');
-  }
-
-  static getStubConfig() {
+  public static getStubConfig(): TodoCardConfig {
     return {
+      type: 'custom:my-todo-card',
       title: 'My Todo Lists',
       entities: ['todo.shopping_list'],
       show_completed: false,
@@ -116,98 +114,5 @@ window.customCards.push({
   type: 'my-todo-card',
   name: 'My Todo Card',
   preview: true,
-  description: 'A custom card made by me!'
+  description: 'A custom card built with Lit and TypeScript'
 });
-
-// GUI Editor
-class MyTodoCardEditor extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-  }
-
-  setConfig(config) {
-    this.config = config;
-    this.render();
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    this.render();
-  }
-
-  getConfig() {
-    const entityPickers = this.shadowRoot.querySelectorAll("ha-entity-picker");
-    const entities = Array.from(entityPickers).map(picker => picker.value).filter(Boolean);
-
-    return {
-      type: 'custom:my-todo-card',
-      title: this.shadowRoot.getElementById('title').value,
-      entities,
-      show_completed: this.shadowRoot.getElementById('showCompleted').checked,
-      days_ahead: parseInt(this.shadowRoot.getElementById('daysAhead').value) || 1,
-    };
-  }
-
-  render() {
-    if (!this._hass || !this.config) return;
-
-    const entities = this.config?.entities || [];
-    const title = this.config?.title || '';
-    const showCompleted = this.config?.show_completed || false;
-    const daysAhead = this.config?.days_ahead || 1;
-
-    this.shadowRoot.innerHTML = `
-      <style>
-        .card-config {
-          padding: 12px;
-        }
-        ha-entity-picker {
-          display: block;
-          margin-bottom: 10px;
-        }
-        input {
-          width: 100%;
-          margin-top: 4px;
-          margin-bottom: 10px;
-        }
-      </style>
-      <div class="card-config">
-        <label>Title:</label><br />
-        <input id="title" value="${title}" /><br /><br />
-
-        <label>Todo Entities:</label><br />
-        ${entities.map(entity => `
-          <ha-entity-picker
-            .hass="this._hass"
-            value="${entity}"
-            include-domains="todo"
-            allow-custom
-          ></ha-entity-picker>
-        `).join('')}
-        <button id="addEntity">Add Entity</button><br /><br />
-
-        <label>Show Completed Items:
-          <input type="checkbox" id="showCompleted" ${showCompleted ? 'checked' : ''} />
-        </label><br /><br />
-
-        <label>Days Ahead to Show (1 = today only):</label><br />
-        <input type="number" id="daysAhead" min="1" max="30" value="${daysAhead}" />
-      </div>
-    `;
-
-    this.shadowRoot.getElementById('addEntity')?.addEventListener('click', () => this._addEntity());
-  }
-
-  _addEntity() {
-    const newEntities = [...(this.config?.entities || []), 'todo.new_item'];
-    this.setConfig({ ...this.config, entities: newEntities });
-    this.dispatchEvent(new CustomEvent('config-changed', {
-      detail: { config: this.config },
-      bubbles: true,
-      composed: true
-    }));
-  }
-}
-
-customElements.define('my-todo-card-editor', MyTodoCardEditor);
