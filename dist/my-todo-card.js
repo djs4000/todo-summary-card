@@ -28,14 +28,14 @@ const E=globalThis,b=E.trustedTypes,S=b?b.createPolicy("lit-html",{createHTML:t=
  */
 const ht={attribute:!0,type:String,converter:m,reflect:!1,hasChanged:g},at=(t=ht,e,s)=>{const{kind:i,metadata:r}=s;let o=globalThis.litPropertyMetadata.get(r);if(void 0===o&&globalThis.litPropertyMetadata.set(r,o=new Map),"setter"===i&&((t=Object.create(t)).wrapped=!0),o.set(s.name,t),"accessor"===i){const{name:i}=s;return{set(s){const r=e.get.call(this);e.set.call(this,s),this.requestUpdate(i,r,t)},init(e){return void 0!==e&&this.C(i,void 0,t,e),e}}}if("setter"===i){const{name:i}=s;return function(s){const r=this[i];e.call(this,s),this.requestUpdate(i,r,t)}}throw Error("Unsupported decorator location: "+i)};function ct(t){return(e,s)=>"object"==typeof s?at(t,e,s):((t,e,s)=>{const i=e.hasOwnProperty(s);return e.constructor.createProperty(s,t),i?Object.getOwnPropertyDescriptor(e,s):void 0})(t,e,s)}class lt extends ot{constructor(){super(...arguments),this._fetched=!1,this._content=B`<p>Loading...</p>`}setConfig(t){if(!t.entities||!Array.isArray(t.entities))throw new Error("You need to define 'entities' as an array");this.config=t,this._fetched=!1,this._content=B`<p>Loading...</p>`}updated(t){t.has("hass")&&!this._fetched&&this.config&&(this._fetched=!0,this.fetchTodos())}render(){return B`
       <ha-card header="${this.config.title||"My Todo Lists"}">
-        <div class="card-content">
-          ${this._content}
-        </div>
+        <div class="card-content">${this._content}</div>
       </ha-card>
     `}async fetchTodos(){const{entities:t,show_completed:e,days_ahead:s}=this.config,i=new Date,r=new Date(i);r.setDate(i.getDate()+(s||1)-1),i.setHours(0,0,0,0);try{const s=t.map((async t=>{const s=await this.hass.callWS({type:"call_service",domain:"todo",service:"get_items",target:{entity_id:t},return_response:!0});return{entity:t,items:(s.response[t]?.items||[]).filter((t=>{if(!e&&"needs_action"!==t.status)return!1;if(t.due){const e=new Date(t.due);return e.setHours(0,0,0,0),e<=r}return!0}))}})),i=(await Promise.all(s)).map((({entity:t,items:e})=>{const s=this.hass.states[t]?.attributes.friendly_name||t;return B`
           <div>
             <b>${s}</b>
-            ${e.length?B`<ul>${e.map((t=>B`<li>${t.summary}</li>`))}</ul>`:B`<p>No items found.</p>`}
+            ${e.length?B`<ul>
+                  ${e.map((t=>B`<li>${t.summary}</li>`))}
+                </ul>`:B`<p>No items found.</p>`}
           </div>
         `}));this._content=B`${i}`,this.requestUpdate()}catch(t){console.error("Error fetching todo items:",t),this._content=B`<p>Error loading todo lists.</p>`,this.requestUpdate()}}static getStubConfig(){return{type:"custom:my-todo-card",title:"My Todo Lists",entities:["todo.shopping_list"],show_completed:!1,days_ahead:1}}}lt.styles=((t,...e)=>{const s=1===t.length?t[0]:e.reduce(((e,s,i)=>e+(t=>{if(!0===t._$cssResult$)return t.cssText;if("number"==typeof t)return t;throw Error("Value passed to 'css' function must be a 'css' function result: "+t+". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.")})(s)+t[i+1]),t[0]);return new o(s,t,i)})`
     ha-card {
