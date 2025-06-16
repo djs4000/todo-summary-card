@@ -1,5 +1,5 @@
 // my-todo-card.ts
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, PropertyValues } from 'lit';
 import { property } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
 
@@ -29,7 +29,13 @@ class MyTodoCard extends LitElement {
     this.config = config;
     this._fetched = false;
     this._content = html`<p>Loading...</p>`;
-    this.fetchTodos();
+  }
+
+  protected updated(changedProps: PropertyValues) {
+    if (changedProps.has('hass') && !this._fetched && this.config) {
+      this._fetched = true;
+      this.fetchTodos();
+    }
   }
 
   protected render() {
