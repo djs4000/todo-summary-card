@@ -14,7 +14,7 @@ class MyTodoCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property() private config!: TodoCardConfig;
   private _fetched = false;
-  private _content = '';
+  private _content: TemplateResult = html`<p>Loading...</p>`;
 
   static styles = css`
     ha-card {
@@ -28,14 +28,16 @@ class MyTodoCard extends LitElement {
     }
     this.config = config;
     this._fetched = false;
-    this._content = 'Loading...';
+    this._content = html`<p>Loading...</p>`;
     this.fetchTodos();
   }
 
   protected render() {
     return html`
       <ha-card header="${this.config.title || 'My Todo Lists'}">
-        <div class="card-content">${html([this._content])}</div>
+        <div class="card-content">
+          ${this._content}
+        </div>
       </ha-card>
     `;
   }
@@ -73,26 +75,24 @@ class MyTodoCard extends LitElement {
 
       const results = await Promise.all(promises);
 
-      let htmlContent = '';
-      results.forEach(({ entity, items }) => {
+      const content = results.map(({ entity, items }) => {
         const title = this.hass.states[entity]?.attributes.friendly_name || entity;
-        if (items.length) {
-          htmlContent += `<b>${title}</b><ul>`;
-          items.forEach(item => {
-            htmlContent += `<li>${item.summary}</li>`;
-          });
-          htmlContent += '</ul>';
-        } else {
-          htmlContent += `<b>${title}</b>: No items found.<br>`;
-        }
+        return html`
+          <div>
+            <b>${title}</b>
+            ${items.length
+              ? html`<ul>${items.map(item => html`<li>${item.summary}</li>`)}</ul>`
+              : html`<p>No items found.</p>`}
+          </div>
+        `;
       });
 
-      this._content = htmlContent;
+      this._content = html`${content}`;
       this.requestUpdate();
 
     } catch (error) {
       console.error("Error fetching todo items:", error);
-      this._content = "Error loading todo lists.";
+      this._content = html`<p>Error loading todo lists.</p>`;
       this.requestUpdate();
     }
   }
