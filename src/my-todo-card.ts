@@ -1,7 +1,7 @@
 // my-todo-card.ts
-import { LitElement, html, css, PropertyValues } from "lit";
-import { property } from "lit/decorators.js";
-import { HomeAssistant, LovelaceCardConfig } from "custom-card-helpers";
+import { LitElement, html, css, PropertyValues } from 'lit';
+import { property } from 'lit/decorators.js';
+import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
 
 interface TodoCardConfig extends LovelaceCardConfig {
   title: string;
@@ -20,6 +20,9 @@ class MyTodoCard extends LitElement {
     ha-card {
       padding: 16px;
     }
+    .error {
+      color: var(--error-color, red);
+    }
   `;
 
   public setConfig(config: TodoCardConfig): void {
@@ -32,7 +35,7 @@ class MyTodoCard extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues) {
-    if (changedProps.has("hass") && !this._fetched && this.config) {
+    if (changedProps.has('hass') && !this._fetched && this.config) {
       this._fetched = true;
       this.fetchTodos();
     }
@@ -40,8 +43,10 @@ class MyTodoCard extends LitElement {
 
   protected render() {
     return html`
-      <ha-card header="${this.config.title || "My Todo Lists"}">
-        <div class="card-content">${this._content}</div>
+      <ha-card header="${this.config.title || 'My Todo Lists'}">
+        <div class="card-content">
+          ${this._content}
+        </div>
       </ha-card>
     `;
   }
@@ -53,19 +58,21 @@ class MyTodoCard extends LitElement {
     maxDate.setDate(today.getDate() + (days_ahead || 1) - 1);
     today.setHours(0, 0, 0, 0);
 
-    try {
-      const promises = entities.map(async (entity) => {
+    const results: TemplateResult[] = [];
+
+    for (const entity of entities) {
+      try {
         const response = await this.hass.callWS({
           type: "call_service",
           domain: "todo",
           service: "get_items",
           target: { entity_id: entity },
-          return_response: true,
+          return_response: true
         });
 
         const items = response.response[entity]?.items || [];
-        const filteredItems = items.filter((item) => {
-          if (!show_completed && item.status !== "needs_action") return false;
+        const filteredItems = items.filter(item => {
+          if (!show_completed && item.status !== 'needs_action') return false;
           if (item.due) {
             const dueDate = new Date(item.due);
             dueDate.setHours(0, 0, 0, 0);
@@ -74,52 +81,46 @@ class MyTodoCard extends LitElement {
           return true;
         });
 
-        return { entity, items: filteredItems };
-      });
-
-      const results = await Promise.all(promises);
-
-      const content = results.map(({ entity, items }) => {
-        const title =
-          this.hass.states[entity]?.attributes.friendly_name || entity;
-        return html`
+        const title = this.hass.states[entity]?.attributes.friendly_name || entity;
+        results.push(html`
           <div>
             <b>${title}</b>
-            ${items.length
-              ? html`<ul>
-                  ${items.map((item) => html`<li>${item.summary}</li>`)}
-                </ul>`
+            ${filteredItems.length
+              ? html`<ul>${filteredItems.map(item => html`<li>${item.summary}</li>`)}</ul>`
               : html`<p>No items found.</p>`}
           </div>
-        `;
-      });
-
-      this._content = html`${content}`;
-      this.requestUpdate();
-    } catch (error) {
-      console.error("Error fetching todo items:", error);
-      this._content = html`<p>Error loading todo lists.</p>`;
-      this.requestUpdate();
+        `);
+      } catch (error) {
+        console.warn(`Error fetching todo entity '${entity}':`, error);
+        results.push(html`
+          <div class="error">
+            <b>Error loading ${entity}</b>: Invalid or unavailable entity.
+          </div>
+        `);
+      }
     }
+
+    this._content = html`${results}`;
+    this.requestUpdate();
   }
 
   public static getStubConfig(): TodoCardConfig {
     return {
-      type: "custom:my-todo-card",
-      title: "My Todo Lists",
-      entities: ["todo.shopping_list"],
+      type: 'custom:my-todo-card',
+      title: 'My Todo Lists',
+      entities: ['todo.shopping_list'],
       show_completed: false,
-      days_ahead: 1,
+      days_ahead: 1
     };
   }
 }
 
-customElements.define("my-todo-card", MyTodoCard);
+customElements.define('my-todo-card', MyTodoCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "my-todo-card",
-  name: "My Todo Card",
+  type: 'my-todo-card',
+  name: 'My Todo Card',
   preview: true,
-  description: "A custom card built with Lit and TypeScript",
+  description: 'A custom card built with Lit and TypeScript'
 });
