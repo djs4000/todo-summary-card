@@ -2,6 +2,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
+import './my-todo-card-editor.ts';
 
 interface TodoCardConfig extends LovelaceCardConfig {
   title: string;
@@ -115,7 +116,7 @@ class MyTodoCard extends LitElement {
   }
 
   public static async getConfigElement() {
-    await import('./my-todo-card-editor');
+    // await import('./my-todo-card-editor');
     return document.createElement('my-todo-card-editor');
   }
 }
