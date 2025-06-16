@@ -1,0 +1,15 @@
+{
+  "name": "my-todo-card",
+  "main": "dist/my-todo-card.js",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "dependencies": {
+    "lit": "^3.0.0"
+  },
+  "devDependencies": {
+    "rollup": "^3.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^7.0.2"
+  }
+}
