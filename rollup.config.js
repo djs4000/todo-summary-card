@@ -7,7 +7,8 @@ export default {
   output: {
     dir: 'dist',
     format: 'es',
-    sourcemap: true
+    sourcemap: true,
+    inlineDynamicImports: true
   },
   plugins: [
     resolve(),

@@ -1,4 +1,3 @@
-
 // my-todo-card-editor.ts
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
@@ -9,8 +8,21 @@ class MyTodoCardEditor extends LitElement {
   @state() private _config = { entities: [], title: '', show_completed: false, days_ahead: 1 };
 
   static styles = css`
-    div {
+    .input-container {
       margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .mdc-text-field__input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid var(--divider-color, #ccc);
+      border-radius: 4px;
+      font: inherit;
     }
   `;
 
@@ -37,20 +49,23 @@ class MyTodoCardEditor extends LitElement {
 
   protected render() {
     return html`
-      <div>
-        <label>Title</label>
-        <input type="text" .value=${this._config.title} data-field="title" @input=${this._valueChanged} />
+      <div class="input-container">
+        <label for="title">Title</label>
+        <input id="title" class="mdc-text-field__input" type="text" .value=${this._config.title} data-field="title" @input=${this._valueChanged} />
       </div>
-      <div>
-        <label>Entities (comma-separated)</label>
-        <input type="text" .value=${this._config.entities.join(', ')} @input=${this._entityChanged} />
+      <div class="input-container">
+        <label for="entities">Entities (comma-separated)</label>
+        <input id="entities" class="mdc-text-field__input" type="text" .value=${this._config.entities.join(', ')} @input=${this._entityChanged} />
       </div>
-      <div>
-        <label>Days Ahead</label>
-        <input type="number" .value=${this._config.days_ahead} data-field="days_ahead" @input=${this._valueChanged} />
+      <div class="input-container">
+        <label for="days_ahead">Days Ahead</label>
+        <input id="days_ahead" class="mdc-text-field__input" type="number" .value=${this._config.days_ahead} data-field="days_ahead" @input=${this._valueChanged} />
       </div>
-      <div>
-        <label><input type="checkbox" .checked=${this._config.show_completed} data-field="show_completed" @change=${this._valueChanged} /> Show Completed</label>
+      <div class="input-container">
+        <label>
+          <input type="checkbox" .checked=${this._config.show_completed} data-field="show_completed" @change=${this._valueChanged} />
+          Show Completed
+        </label>
       </div>
     `;
   }
