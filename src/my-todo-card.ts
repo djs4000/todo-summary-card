@@ -1,5 +1,6 @@
 // my-todo-card.ts
-import { LitElement, html, css, property } from 'lit';
+import { LitElement, html, css } from 'lit';
+import { property } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
 
 interface TodoCardConfig extends LovelaceCardConfig {
