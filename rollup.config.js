@@ -1,20 +1,26 @@
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 
 export default {
-  input: 'src/my-todo-card.ts',
+  input: 'src/my-todo-card.ts', // or your actual entry point
   output: {
-    dir: 'dist',
+    file: 'dist/my-todo-card.js',
     format: 'es',
     sourcemap: true,
     inlineDynamicImports: true
   },
   plugins: [
-    resolve(),
-    typescript({
-      tsconfig: './tsconfig.json'
+    resolve({
+      browser: true,
+      exportConditions: ['browser', 'module'],
+      extensions: ['.js', '.ts']
     }),
+    commonjs(),
+    json(),
+    typescript({ tsconfig: './tsconfig.json' }),
     terser()
   ]
 };
