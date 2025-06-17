@@ -1,8 +1,21 @@
 // my-todo-card.ts
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { property, state } from 'lit/decorators.js';
+import type { TemplateResult } from 'lit';
+import { property } from 'lit/decorators.js';
 import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
-import './my-todo-card-editor.ts';
+
+declare global {
+  interface Window {
+    customCards: any[];
+  }
+}
+
+interface TodoItem {
+  summary: string;
+  status: string;
+  due?: string;
+  uid: string;
+}
 
 interface TodoCardConfig extends LovelaceCardConfig {
   title: string;
@@ -63,7 +76,7 @@ class MyTodoCard extends LitElement {
 
     for (const entity of entities) {
       try {
-        const response = await this.hass.callWS({
+        const response = await this.hass.callWS<{ [entity: string]: { items: TodoItem[] } }>({
           type: "call_service",
           domain: "todo",
           service: "get_items",
@@ -72,7 +85,7 @@ class MyTodoCard extends LitElement {
         });
 
         const items = response.response[entity]?.items || [];
-        const filteredItems = items.filter(item => {
+        const filteredItems = items.filter((item: TodoItem) => {
           if (!show_completed && item.status !== 'needs_action') return false;
           if (item.due) {
             const dueDate = new Date(item.due);
@@ -87,7 +100,7 @@ class MyTodoCard extends LitElement {
           <div>
             <b>${title}</b>
             ${filteredItems.length
-              ? html`<ul>${filteredItems.map(item => html`<li>${item.summary}</li>`)}</ul>`
+              ? html`<ul>${filteredItems.map((item: TodoItem) => html`<li>${item.summary}</li>`)}</ul>`
               : html`<p>No items found.</p>`}
           </div>
         `);
@@ -116,7 +129,7 @@ class MyTodoCard extends LitElement {
   }
 
   public static async getConfigElement() {
-    // await import('./my-todo-card-editor');
+    await import('./my-todo-card-editor');
     return document.createElement('my-todo-card-editor');
   }
 }

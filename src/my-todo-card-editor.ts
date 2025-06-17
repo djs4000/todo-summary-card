@@ -2,13 +2,10 @@
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { fireEvent, HomeAssistant } from 'custom-card-helpers';
-import '@material/mwc-textfield';
-import '@material/mwc-checkbox';
-import '@material/mwc-formfield';
-import '@material/mwc-button';
-import '@material/mwc-select';
-import '@material/mwc-list/mwc-list-item';
-import "custom-card-helpers/lib/components/ha-entity-picker.js";
+import 'custom-card-helpers/lib/components/ha-textfield.js';
+import 'custom-card-helpers/lib/components/ha-checkbox.js';
+import 'custom-card-helpers/lib/components/ha-formfield.js';
+import 'custom-card-helpers/lib/components/ha-entity-picker.js';
 
 class MyTodoCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -36,12 +33,12 @@ class MyTodoCardEditor extends LitElement {
 
   protected render() {
     return html`
-      <mwc-textfield
+      <ha-textfield
         label="Title"
         .value=${this._config.title || ''}
         data-field="title"
         @input=${this._valueChanged}
-      ></mwc-textfield>
+      ></ha-textfield>
 
       <ha-entity-picker
         .hass=${this.hass}
@@ -52,21 +49,21 @@ class MyTodoCardEditor extends LitElement {
         @value-changed=${this._entitiesChanged}
       ></ha-entity-picker>
 
-      <mwc-textfield
+      <ha-textfield
         label="Days Ahead"
         type="number"
         .value=${String(this._config.days_ahead)}
         data-field="days_ahead"
         @input=${this._valueChanged}
-      ></mwc-textfield>
+      ></ha-textfield>
 
-      <mwc-formfield label="Show Completed">
-        <mwc-checkbox
+      <ha-formfield label="Show Completed">
+        <ha-checkbox
           .checked=${this._config.show_completed}
           data-field="show_completed"
           @change=${this._valueChanged}
-        ></mwc-checkbox>
-      </mwc-formfield>
+        ></ha-checkbox>
+      </ha-formfield>
     `;
   }
 }

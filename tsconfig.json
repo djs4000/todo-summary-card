@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "outDir": "dist",
     "declaration": false,
-    "sourceMap": false,
+    "sourceMap": true,
     "strict": true
   }
 }
