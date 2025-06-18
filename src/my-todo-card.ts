@@ -35,6 +35,7 @@ interface TodoCardConfig extends LovelaceCardConfig {
   days_ahead: number;
 }
 
+
 class MyTodoCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @property() private config!: TodoCardConfig;
