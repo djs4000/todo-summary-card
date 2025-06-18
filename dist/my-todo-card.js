@@ -63,6 +63,72 @@ const t=globalThis,i$1=t.trustedTypes,s$1=i$1?i$1.createPolicy("lit-html",{creat
  * SPDX-License-Identifier: BSD-3-Clause
  */function r(r){return n({...r,state:!0,attribute:!1})}
 
+let MyTodoCardEditor = class MyTodoCardEditor extends i {
+    constructor() {
+        super(...arguments);
+        this._config = {};
+    }
+    setConfig(config) {
+        this._config = config;
+    }
+    _valueChanged(ev) {
+        if (!this._config || !this.hass)
+            return;
+        const target = ev.target;
+        const value = ev.detail.value;
+        if (target.configValue === 'entities') {
+            this._config = {
+                ...this._config,
+                entities: value ? [value] : [],
+            };
+        }
+        fireEvent(this, 'config-changed', { config: this._config });
+    }
+    render() {
+        if (!this.hass || !this._config)
+            return x ``;
+        return x `
+      <ha-card header="To-Do Summary Card">
+        <div class="card-content">
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${this._config.entities?.[0] ?? ''}
+            .configValue=${'entities'}
+            .includeDomains=${['todo']}
+            @value-changed=${this._valueChanged}
+          ></ha-entity-picker>
+        </div>
+      </ha-card>
+    `;
+    }
+};
+MyTodoCardEditor.styles = i$3 `
+    .card-content {
+      padding: 16px;
+    }
+  `;
+__decorate([
+    n({ attribute: false })
+], MyTodoCardEditor.prototype, "hass", void 0);
+__decorate([
+    r()
+], MyTodoCardEditor.prototype, "_config", void 0);
+MyTodoCardEditor = __decorate([
+    customElement('my-todo-card-editor')
+], MyTodoCardEditor);
+function fireEvent(node, type, detail) {
+    node.dispatchEvent(new CustomEvent(type, {
+        detail,
+        bubbles: true,
+        composed: true,
+    }));
+}
+
+var myTodoCardEditor = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    get MyTodoCardEditor () { return MyTodoCardEditor; }
+});
+
 class MyTodoCard extends i {
     constructor() {
         super(...arguments);
@@ -176,71 +242,5 @@ window.customCards.push({
     name: 'My Todo Card',
     preview: true,
     description: 'A custom card built with Lit and TypeScript'
-});
-
-let MyTodoCardEditor = class MyTodoCardEditor extends i {
-    constructor() {
-        super(...arguments);
-        this._config = {};
-    }
-    setConfig(config) {
-        this._config = config;
-    }
-    _valueChanged(ev) {
-        if (!this._config || !this.hass)
-            return;
-        const target = ev.target;
-        const value = ev.detail.value;
-        if (target.configValue === 'entities') {
-            this._config = {
-                ...this._config,
-                entities: value ? [value] : [],
-            };
-        }
-        fireEvent(this, 'config-changed', { config: this._config });
-    }
-    render() {
-        if (!this.hass || !this._config)
-            return x ``;
-        return x `
-      <ha-card header="To-Do Summary Card">
-        <div class="card-content">
-          <ha-entity-picker
-            .hass=${this.hass}
-            .value=${this._config.entities?.[0] ?? ''}
-            .configValue=${'entities'}
-            .includeDomains=${['todo']}
-            @value-changed=${this._valueChanged}
-          ></ha-entity-picker>
-        </div>
-      </ha-card>
-    `;
-    }
-};
-MyTodoCardEditor.styles = i$3 `
-    .card-content {
-      padding: 16px;
-    }
-  `;
-__decorate([
-    n({ attribute: false })
-], MyTodoCardEditor.prototype, "hass", void 0);
-__decorate([
-    r()
-], MyTodoCardEditor.prototype, "_config", void 0);
-MyTodoCardEditor = __decorate([
-    customElement('my-todo-card-editor')
-], MyTodoCardEditor);
-function fireEvent(node, type, detail) {
-    node.dispatchEvent(new CustomEvent(type, {
-        detail,
-        bubbles: true,
-        composed: true,
-    }));
-}
-
-var myTodoCardEditor = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    get MyTodoCardEditor () { return MyTodoCardEditor; }
 });
 //# sourceMappingURL=my-todo-card.js.map

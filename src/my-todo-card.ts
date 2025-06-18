@@ -2,6 +2,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import type { TemplateResult } from 'lit';
 import { property } from 'lit/decorators.js';
+import './my-todo-card-editor';
 
 // Declare global types instead of importing custom-card-helpers
 declare global {
