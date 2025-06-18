@@ -3,6 +3,20 @@ import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
 
 declare global {
+  interface HomeAssistant {
+    callWS<T>(msg: any): Promise<T>;
+    states: any;
+  }
+
+  interface LovelaceCardConfig {
+    type: string;
+    [key: string]: any;
+  }
+
+  interface Window {
+    customCards: any[];
+  }
+
   interface HTMLElementTagNameMap {
     'ha-card': HTMLElement;
     'ha-entity-picker': HTMLElement;
@@ -11,6 +25,8 @@ declare global {
     'ha-formfield': HTMLElement;
   }
 }
+
+
 declare global {
   interface HomeAssistant {
     states: any;
