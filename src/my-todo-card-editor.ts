@@ -1,11 +1,18 @@
 // my-todo-card-editor.ts
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import { fireEvent, HomeAssistant } from 'custom-card-helpers';
 import 'custom-card-helpers/lib/components/ha-textfield.js';
 import 'custom-card-helpers/lib/components/ha-checkbox.js';
 import 'custom-card-helpers/lib/components/ha-formfield.js';
 import 'custom-card-helpers/lib/components/ha-entity-picker.js';
+
+declare global {
+  interface HomeAssistant {
+    states: any;
+  }
+
+  function fireEvent(node: HTMLElement, type: string, detail: any): void;
+}
 
 class MyTodoCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -66,6 +73,14 @@ class MyTodoCardEditor extends LitElement {
       </ha-formfield>
     `;
   }
+}
+
+function fireEvent(node: HTMLElement, type: string, detail: any) {
+  node.dispatchEvent(new CustomEvent(type, {
+    detail,
+    bubbles: true,
+    composed: true,
+  }));
 }
 
 customElements.define('my-todo-card-editor', MyTodoCardEditor);

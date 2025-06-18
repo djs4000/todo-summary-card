@@ -1,4 +1,3 @@
-import { fireEvent } from 'custom-card-helpers';
 import 'custom-card-helpers/lib/components/ha-textfield.js';
 import 'custom-card-helpers/lib/components/ha-checkbox.js';
 import 'custom-card-helpers/lib/components/ha-formfield.js';
@@ -248,6 +247,13 @@ __decorate([
 __decorate([
     r()
 ], MyTodoCardEditor.prototype, "_config", void 0);
+function fireEvent(node, type, detail) {
+    node.dispatchEvent(new CustomEvent(type, {
+        detail,
+        bubbles: true,
+        composed: true,
+    }));
+}
 customElements.define('my-todo-card-editor', MyTodoCardEditor);
 
 var myTodoCardEditor = /*#__PURE__*/Object.freeze({

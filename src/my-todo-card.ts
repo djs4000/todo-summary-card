@@ -2,11 +2,21 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import type { TemplateResult } from 'lit';
 import { property } from 'lit/decorators.js';
-import { HomeAssistant, LovelaceCardConfig } from 'custom-card-helpers';
 
+// Declare global types instead of importing custom-card-helpers
 declare global {
   interface Window {
     customCards: any[];
+  }
+
+  interface HomeAssistant {
+    callWS<T>(msg: any): Promise<T>;
+    states: any;
+  }
+
+  interface LovelaceCardConfig {
+    type: string;
+    [key: string]: any;
   }
 }
 
@@ -76,7 +86,7 @@ class MyTodoCard extends LitElement {
 
     for (const entity of entities) {
       try {
-        const response = await this.hass.callWS<{ [entity: string]: { items: TodoItem[] } }>({
+        const response = await this.hass.callWS<{ response: Record<string, { items: TodoItem[] }> }>({
           type: "call_service",
           domain: "todo",
           service: "get_items",
