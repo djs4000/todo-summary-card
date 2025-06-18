@@ -178,70 +178,59 @@ window.customCards.push({
     description: 'A custom card built with Lit and TypeScript'
 });
 
-class MyTodoCardEditor extends i {
+let MyTodoCardEditor = class MyTodoCardEditor extends i {
     constructor() {
         super(...arguments);
-        this._config = { entities: [], title: '', show_completed: false, days_ahead: 1 };
+        this._config = {};
     }
     setConfig(config) {
-        this._config = { ...this._config, ...config };
+        this._config = config;
     }
     _valueChanged(ev) {
-        const target = ev.target;
-        if (!this._config || !target)
+        if (!this._config || !this.hass)
             return;
-        const value = target.type === 'checkbox' ? target.checked : target.value;
-        const key = target.dataset.field;
-        this._config = { ...this._config, [key]: key === 'days_ahead' ? Number(value) : value };
-        fireEvent(this, 'config-changed', { config: this._config });
-    }
-    _entitiesChanged(ev) {
+        const target = ev.target;
         const value = ev.detail.value;
-        this._config = { ...this._config, entities: value };
+        if (target.configValue === 'entities') {
+            this._config = {
+                ...this._config,
+                entities: value ? [value] : [],
+            };
+        }
         fireEvent(this, 'config-changed', { config: this._config });
     }
     render() {
+        if (!this.hass || !this._config)
+            return x ``;
         return x `
-      <ha-textfield
-        label="Title"
-        .value=${this._config.title || ''}
-        data-field="title"
-        @input=${this._valueChanged}
-      ></ha-textfield>
-
-      <ha-entity-picker
-        .hass=${this.hass}
-        .value=${this._config.entities}
-        .includeDomains=${['todo']}
-        .multiple=${true}
-        label="Todo Entities"
-        @value-changed=${this._entitiesChanged}
-      ></ha-entity-picker>
-
-      <ha-textfield
-        label="Days Ahead"
-        type="number"
-        .value=${String(this._config.days_ahead)}
-        data-field="days_ahead"
-        @input=${this._valueChanged}
-      ></ha-textfield>
-
-      <ha-formfield label="Show Completed">
-        <ha-checkbox
-          .checked=${this._config.show_completed}
-          data-field="show_completed"
-          @change=${this._valueChanged}
-        ></ha-checkbox>
-      </ha-formfield>
+      <ha-card header="To-Do Summary Card">
+        <div class="card-content">
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${this._config.entities?.[0] ?? ''}
+            .configValue=${'entities'}
+            .includeDomains=${['todo']}
+            @value-changed=${this._valueChanged}
+          ></ha-entity-picker>
+        </div>
+      </ha-card>
     `;
     }
-}
+};
+MyTodoCardEditor.styles = i$3 `
+    .card-content {
+      padding: 16px;
+    }
+  `;
 __decorate([
     n({ attribute: false })
 ], MyTodoCardEditor.prototype, "hass", void 0);
 __decorate([
     r()
 ], MyTodoCardEditor.prototype, "_config", void 0);
+MyTodoCardEditor = __decorate([
+    customElement('my-todo-card-editor')
+], MyTodoCardEditor);
 function fireEvent(node, type, detail) {
     node.dispatchEvent(new CustomEvent(type, {
         detail,
@@ -249,9 +238,9 @@ function fireEvent(node, type, detail) {
         composed: true,
     }));
 }
-customElements.define('my-todo-card-editor', MyTodoCardEditor);
 
 var myTodoCardEditor = /*#__PURE__*/Object.freeze({
-    __proto__: null
+    __proto__: null,
+    get MyTodoCardEditor () { return MyTodoCardEditor; }
 });
 //# sourceMappingURL=my-todo-card.js.map

@@ -35,68 +35,57 @@ declare global {
   function fireEvent(node: HTMLElement, type: string, detail: any): void;
 }
 
-class MyTodoCardEditor extends LitElement {
-  @property({ attribute: false }) public hass!: HomeAssistant;
-  @state() private _config = { entities: [], title: '', show_completed: false, days_ahead: 1 };
+@customElement('my-todo-card-editor')
+export class MyTodoCardEditor extends LitElement {
+  @property({ attribute: false }) hass: HomeAssistant;
+  @state() private _config: LovelaceCardConfig = {};
 
-  public setConfig(config: any): void {
-    this._config = { ...this._config, ...config };
+  setConfig(config: LovelaceCardConfig): void {
+    this._config = config;
   }
 
-  private _valueChanged(ev: Event) {
-    const target = ev.target as HTMLInputElement;
-    if (!this._config || !target) return;
+  private _valueChanged(ev: CustomEvent): void {
+    if (!this._config || !this.hass) return;
 
-    const value = target.type === 'checkbox' ? target.checked : target.value;
-    const key = target.dataset.field!;
-    this._config = { ...this._config, [key]: key === 'days_ahead' ? Number(value) : value };
-    fireEvent(this, 'config-changed', { config: this._config });
-  }
-
-  private _entitiesChanged(ev: CustomEvent) {
+    const target = ev.target as any;
     const value = ev.detail.value;
-    this._config = { ...this._config, entities: value };
+
+    if (target.configValue === 'entities') {
+      this._config = {
+        ...this._config,
+        entities: value ? [value] : [],
+      };
+    }
+
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
-  protected render() {
+  render() {
+    if (!this.hass || !this._config) return html``;
+
     return html`
-      <ha-textfield
-        label="Title"
-        .value=${this._config.title || ''}
-        data-field="title"
-        @input=${this._valueChanged}
-      ></ha-textfield>
-
-      <ha-entity-picker
-        .hass=${this.hass}
-        .value=${this._config.entities}
-        .includeDomains=${['todo']}
-        .multiple=${true}
-        label="Todo Entities"
-        @value-changed=${this._entitiesChanged}
-      ></ha-entity-picker>
-
-      <ha-textfield
-        label="Days Ahead"
-        type="number"
-        .value=${String(this._config.days_ahead)}
-        data-field="days_ahead"
-        @input=${this._valueChanged}
-      ></ha-textfield>
-
-      <ha-formfield label="Show Completed">
-        <ha-checkbox
-          .checked=${this._config.show_completed}
-          data-field="show_completed"
-          @change=${this._valueChanged}
-        ></ha-checkbox>
-      </ha-formfield>
+      <ha-card header="To-Do Summary Card">
+        <div class="card-content">
+          <ha-entity-picker
+            .hass=${this.hass}
+            .value=${this._config.entities?.[0] ?? ''}
+            .configValue=${'entities'}
+            .includeDomains=${['todo']}
+            @value-changed=${this._valueChanged}
+          ></ha-entity-picker>
+        </div>
+      </ha-card>
     `;
   }
-}
 
-function fireEvent(node: HTMLElement, type: string, detail: any) {
+  static styles = css`
+    .card-content {
+      padding: 16px;
+    }
+  `;
+}  
+
+function fireEvent(node: HTMLElement, type: string, detail: any): void {
   node.dispatchEvent(new CustomEvent(type, {
     detail,
     bubbles: true,
@@ -104,4 +93,8 @@ function fireEvent(node: HTMLElement, type: string, detail: any) {
   }));
 }
 
-customElements.define('my-todo-card-editor', MyTodoCardEditor);
+declare global {
+  interface HTMLElementTagNameMap {
+    'my-todo-card-editor': MyTodoCardEditor;
+  }
+}
