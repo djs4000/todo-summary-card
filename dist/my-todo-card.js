@@ -1,8 +1,3 @@
-import 'custom-card-helpers/lib/components/ha-textfield.js';
-import 'custom-card-helpers/lib/components/ha-checkbox.js';
-import 'custom-card-helpers/lib/components/ha-formfield.js';
-import 'custom-card-helpers/lib/components/ha-entity-picker.js';
-
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
 

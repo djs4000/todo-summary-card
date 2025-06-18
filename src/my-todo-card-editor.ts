@@ -1,11 +1,16 @@
 // my-todo-card-editor.ts
 import { LitElement, html, css } from 'lit';
 import { property, state } from 'lit/decorators.js';
-import 'custom-card-helpers/lib/components/ha-textfield.js';
-import 'custom-card-helpers/lib/components/ha-checkbox.js';
-import 'custom-card-helpers/lib/components/ha-formfield.js';
-import 'custom-card-helpers/lib/components/ha-entity-picker.js';
 
+declare global {
+  interface HTMLElementTagNameMap {
+    'ha-card': HTMLElement;
+    'ha-entity-picker': HTMLElement;
+    'ha-textfield': HTMLElement;
+    'ha-checkbox': HTMLElement;
+    'ha-formfield': HTMLElement;
+  }
+}
 declare global {
   interface HomeAssistant {
     states: any;
