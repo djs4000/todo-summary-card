@@ -8,11 +8,6 @@ declare global {
     states: any;
   }
 
-  interface LovelaceCardConfig {
-    type: string;
-    [key: string]: any;
-  }
-
   interface Window {
     customCards: any[];
   }
